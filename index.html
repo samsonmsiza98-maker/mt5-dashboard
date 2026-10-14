@@ -1,1 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MT5 Live Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #38bdf8;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-size: 1.75rem;
+            color: var(--accent);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background-color: var(--border);
+            color: var(--text-muted);
+        }
+
+        .status-online {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        pre {
+            background-color: #090d16;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+            margin: 0;
+        }
+
+        .footer-info {
+            margin-top: 16px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>MT5 Live Dashboard</h1>
+        <span id="status" class="status-badge">Connecting...</span>
+    </div>
+
+    <div class="card">
+        <pre id="data">Loading live data from bridge...</pre>
+        <div class="footer-info">
+            Last Updated: <span id="last-updated">--</span>
+        </div>
+    </div>
+
+    <script>
+        const BIN_ID = '6ace544dac6210605a2e2380';
+        const MASTER_KEY = '$2a$10$RtN7D1d2o60pVBCORuWuBeuqBtY4SCmkEZ6OxgSzPnP33OQ77UUPK';
+        const URL = `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`;
+
+        async function fetchDashboardData() {
+            const statusEl = document.getElementById('status');
+            const dataEl = document.getElementById('data');
+            const updatedEl = document.getElementById('last-updated');
+
+            try {
+                const response = await fetch(URL, {
+                    headers: {
+                        'X-Master-Key': MASTER_KEY
+                    }
+                });
+
+                if (!response.ok) throw new Error('HTTP error ' + response.status);
+
+                const result = await response.json();
+                
+                statusEl.innerText = 'ONLINE';
+                statusEl.className = 'status-badge status-online';
+                
+                dataEl.innerText = JSON.stringify(result.record, null, 2);
+                updatedEl.innerText = new Date().toLocaleTimeString();
+            } catch (err) {
+                statusEl.innerText = 'OFFLINE';
+                statusEl.className = 'status-badge';
+                dataEl.innerText = 'Failed to load data. Retrying...';
+            }
+        }
+
+        fetchDashboardData();
+        setInterval(fetchDashboardData, 3000);
+    </script>
+
+</body>
+</html>
 
